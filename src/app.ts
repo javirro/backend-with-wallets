@@ -3,7 +3,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import { UI_URL } from './constants'
-import testRoutes from './routes/test.routes'
+import userRoutes from './routes/user.routes'
 import { errorHandler } from './middlewares/errorHandler'
 import dbClient from './db/connectionDB'
 
@@ -28,7 +28,7 @@ app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 
 // API routes
-app.use('/api/v1', testRoutes)
+app.use('/api/v1/users', userRoutes)
 
 // Health check with database connection test
 app.get('/health', async (req: Request, res: Response) => {

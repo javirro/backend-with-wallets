@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { AppError } from '../types/errors'
 import { ZodError } from 'zod'
 
+
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
   // Handle Zod validation errors
   if (err instanceof ZodError) {

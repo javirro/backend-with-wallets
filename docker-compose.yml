@@ -1,7 +1,5 @@
-version: "3.8"
 
 services:
-
   postgres:
     image: postgres
     restart: always
@@ -11,7 +9,7 @@ services:
       - DATABASE_HOST=localhost
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=dockerDB
+      - POSTGRES_DB=local
     volumes:
       - ./src/db/database.sql:/docker-entrypoint-initdb.d/init.sql
       - ./postgres_data:/var/lib/postgresql/data
