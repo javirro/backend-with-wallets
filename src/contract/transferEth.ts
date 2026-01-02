@@ -1,6 +1,7 @@
 import { createPublicClient, createWalletClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
+import { envs } from '../constants'
 
 export const checkEtherBalance = async (address: string) => {
   const publicClient = createPublicClient({
@@ -15,9 +16,9 @@ export const checkEtherBalance = async (address: string) => {
 
 
 export const transferEth = async ( toAddress: string, amountInEth: number) => {
-  const masterPk = "" as `0x${string}`
+  const masterPk = envs.MASTER_PRIVATE_KEY.startsWith('0x') ? envs.MASTER_PRIVATE_KEY : `0x${envs.MASTER_PRIVATE_KEY}`
+  const account = privateKeyToAccount(masterPk as `0x${string}`)
 
-  const account = privateKeyToAccount(masterPk)
   const publicClient = createPublicClient({
     transport: http(),
     chain: sepolia
@@ -27,6 +28,7 @@ export const transferEth = async ( toAddress: string, amountInEth: number) => {
     chain: sepolia,
     account
   })
+
   const amountInWei = BigInt(amountInEth * 1e18)
 
   const txHash = await walletClient.sendTransaction({

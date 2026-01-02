@@ -47,7 +47,7 @@ export class UserService {
     return user
   }
 
-  async sendTransaction(userId: number) {
+  async sendTransaction(userId: number): Promise<string> {
     const user = await getUserById(userId)
     if (!user) {
       throw new BadRequestError('User not found')
@@ -62,9 +62,10 @@ export class UserService {
       console.log('Insufficient balance. Sending ETH to user wallet...')
       await transferEth(user.wallet!, 0.0006)
     }
-    await executeTransaction(decryptedPrivateKey)
+    const txHash = await executeTransaction(decryptedPrivateKey)
 
-    //
+    return txHash
+
   }
 }
 

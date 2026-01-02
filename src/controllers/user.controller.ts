@@ -32,5 +32,5 @@ export const executeController = asyncHandler(async (req: Request, res: Response
     throw new NotFoundError('User not found')
   }
   const txHash = await userService.sendTransaction(user.userId)
-  ResponseHandler.success(res, { txHash }, 'Transaction executed successfully')
+  ResponseHandler.success(res, txHash, 'Transaction executed successfully')
 })
