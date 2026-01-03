@@ -6,3 +6,12 @@ export interface User {
   pk: string
   createdAt: Date
 }
+
+export interface UserSCA {
+  id: number
+  email: string
+  password?: string
+  sca: string
+  txHash: string
+  createdAt: Date
+}

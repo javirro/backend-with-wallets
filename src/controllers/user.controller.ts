@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { ResponseHandler } from '../utils/response'
 import { asyncHandler } from '../middlewares/errorHandler'
 import { userService } from '../services/user.service'
+import { userScaService } from '../services/userSca.service'
 import { NotFoundError } from '../types/errors'
 import { createUserSchema } from '../validators/project.validators'
 import { generateJWTAccessToken } from '../middlewares/jwtToken/jwt'
@@ -32,5 +33,31 @@ export const executeController = asyncHandler(async (req: Request, res: Response
     throw new NotFoundError('User not found')
   }
   const txHash = await userService.sendTransaction(user.userId)
+  ResponseHandler.success(res, txHash, 'Transaction executed successfully')
+})
+
+// SCA Controllers
+export const createUserSCAController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const safeBody = createUserSchema.parse(req.body)
+  const userSCA = await userScaService.createUserSCA(safeBody.email, safeBody.password)
+  const jwt = generateJWTAccessToken(userSCA.id, true)
+  const accessToken = { token: jwt }
+  ResponseHandler.created(res, accessToken, 'User SCA created successfully')
+})
+
+export const loginUserSCAController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const safeBody = createUserSchema.parse(req.body)
+  const userSCA = await userScaService.loginUserSca(safeBody.email, safeBody.password)
+  const jwt = generateJWTAccessToken(userSCA.id, true)
+  const accessToken = { token: jwt }
+  ResponseHandler.success(res, accessToken, 'Login successful')
+})
+
+export const executeSCAController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user
+  if (!user) {
+    throw new NotFoundError('User not found')
+  }
+  const txHash = await userScaService.sendTransaction(user.userId)
   ResponseHandler.success(res, txHash, 'Transaction executed successfully')
 })

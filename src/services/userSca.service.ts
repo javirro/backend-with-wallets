@@ -1,39 +1,33 @@
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
-import { createUser, getUserByEmail, getUserById } from '../db/queries'
+import { createUser, createUserSCA, getUserByEmail, getUserById, getUserSCAById } from '../db/queries'
 import { BadRequestError, ConflictError } from '../types/errors'
 import { decryptPrivateKey, encryptPrivateKey } from '../utils/encryptDecrypt'
 import { hashData, verifyHash } from '../utils/hash'
 import { executeTransaction } from '../contract/eoaAccount/executeTransaction'
 import { checkEtherBalance, transferEth } from '../contract/eoaAccount/transferEth'
+import { createSmartContractAccount } from '../contract/smartcontractAccount/createSmartContractAccount'
+import { sendScaTransaction } from '../contract/smartcontractAccount/sendScaTransaction'
+import { DEPOSIT_ESCROW_ADDRESS } from '../contract/addresses'
 
-export class UserService {
+export class UserScaService {
   async normalizeEmail(email: string): Promise<string> {
     return email.trim().toLowerCase()
   }
-  async createUser(email: string, password: string) {
+  async createUserSCA(email: string, password: string) {
     // first validate if there is a user with that email
     const normalizeEmail = await this.normalizeEmail(email)
     const existingUser = await getUserByEmail(normalizeEmail)
     if (existingUser) {
       throw new ConflictError('Invalid email')
     }
-    // Generate a random private key
-    const privateKey = generatePrivateKey()
 
-    // Create an account from the private key
-    const account = privateKeyToAccount(privateKey)
+    const { scaAddress, txHash } = await createSmartContractAccount(normalizeEmail)
 
-    // encrypt the private key
-    const encryptedPrivateKey = encryptPrivateKey(privateKey)
-
-    // hash the password
-    const passwordHash = await hashData(password)
-
-    const user = await createUser(normalizeEmail, passwordHash, account.address, encryptedPrivateKey)
+    const user = await createUserSCA(normalizeEmail, password, scaAddress, txHash)
     return user
   }
 
-  async loginUser(email: string, password: string) {
+  async loginUserSca(email: string, password: string) {
     const normalizeEmail = await this.normalizeEmail(email)
     const user = await getUserByEmail(normalizeEmail)
     if (!user) {
@@ -47,26 +41,17 @@ export class UserService {
     return user
   }
 
-  async sendTransaction(userId: number): Promise<string> {
-    const user = await getUserById(userId)
+  async sendTransactionSca(userId: number): Promise<string> {
+    const user = await getUserSCAById(userId)
     if (!user) {
       throw new BadRequestError('User not found')
     }
-
-    const BALANCE_THRESHOLD_ETH = 0.0003
-    // Decrypt the private key
-    const decryptedPrivateKey = decryptPrivateKey(user.pk!)
-    //! THE ACCOUNT MUST HAVE SEPOLIA ETH TO EXECUTE THE TRANSACTION
-    const { ethBalance } = await checkEtherBalance(user.wallet!)
-    if (ethBalance < BALANCE_THRESHOLD_ETH) {
-      console.log('Insufficient balance. Sending ETH to user wallet...')
-      await transferEth(user.wallet!, 0.0006)
-    }
-    const txHash = await executeTransaction(decryptedPrivateKey)
+    const randomBeneficiary = '0x0000000000000000000000000000000000000001'
+    const maxValidationTime =  86400 // 24 hours in seconds
+    const txHash = await sendScaTransaction(user.sca!, DEPOSIT_ESCROW_ADDRESS, randomBeneficiary, maxValidationTime)
 
     return txHash
-
   }
 }
 
-export const userService = new UserService()
+export const userScaService = new UserScaService()

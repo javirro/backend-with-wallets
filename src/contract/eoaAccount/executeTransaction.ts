@@ -1,9 +1,9 @@
-import { createPublicClient, createWalletClient, Hex, http } from 'viem'
+import { createWalletClient, Hex, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { sepolia } from 'viem/chains'
-import abi from './abi.json'
+import abi from '../depositEscrowAbi.json'
+import { DEPOSIT_ESCROW_ADDRESS } from '../addresses'
 
-const contractAddress = '0x494D6E966b9f1485EC3d7778C90e20d2a2b1464c'
 
 export const executeTransaction = async (decryptedPrivateKey: string) => {
   const randomBeneficiary = '0x0000000000000000000000000000000000000001'
@@ -18,13 +18,8 @@ export const executeTransaction = async (decryptedPrivateKey: string) => {
     account
   })
 
-  const publicClient = createPublicClient({
-    transport: http(),
-    chain: sepolia
-  })
-
   const txHash = await walletClient.writeContract({
-    address: contractAddress as `0x${string}`,
+    address: DEPOSIT_ESCROW_ADDRESS as `0x${string}`,
     abi: abi,
     functionName: 'deposit',
     args: [randomBeneficiary as `0x${string}`, maxValidationTime],
@@ -32,7 +27,7 @@ export const executeTransaction = async (decryptedPrivateKey: string) => {
 
   })
 
-  await publicClient.waitForTransactionReceipt({ hash: txHash })
+  await viemConfig.getPublicClient().waitForTransactionReceipt({ hash: txHash })
   console.log('Transaction executed with hash:', txHash)
   return txHash
 }

@@ -6,6 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsx src/index.ts",
+    "createSmartContractAccount": "tsx src/contract/smartcontractAccount/createSmartContractAccount.ts",
+    "sendScaTransaction": "tsx src/contract/smartcontractAccount/sendScaTransaction.ts",
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\""
